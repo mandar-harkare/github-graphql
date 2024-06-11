@@ -35,7 +35,7 @@ const customQ2 = gql`{
 	}
 }`
 
-const customQ3 = gql`{
+const getRepositoriesQuery = gql`{
 	viewer {
 		name
 		repositories(last: 30) {
@@ -47,9 +47,29 @@ const customQ3 = gql`{
 	}
 }`
 
-const customQ4 = gql`{
-	repository(owner:"octocat", name:"Hello-World") {
-	  issues(last:20, states:CLOSED) {
+// const getIssuesQuery = gql`query getIssues($owner_name: String!, $repository_name: String!){
+// 	repository(owner:$owner_name, name:$repository_name) {
+// 	  issues(last:20) {
+// 		edges {
+// 		  node {
+// 			title
+// 			url
+// 			labels(first:5) {
+// 			  edges {
+// 				node {
+// 				  name
+// 				}
+// 			  }
+// 			}
+// 		  }
+// 		}
+// 	  }
+// 	}
+// }`
+
+const getIssuesQuery = gql`{
+	repository(owner:"mandar-harkare", name:"nodejs") {
+	  issues(last:20) {
 		edges {
 		  node {
 			title
@@ -93,10 +113,41 @@ const customQ6 = gql`{
   }
 }`
 
-const getResults = async () => {
-	const results = await client.query({
-		query: customQ3
+// const getResults = async () => {
+// 	const results = await client.query({
+// 		query: customQ3
+// 	})
+// 	console.log(results.data.viewer.repositories.nodes)
+// }
+// getResults();
+
+app.get('/repositories', async function(req, res) {
+  const results = await client.query({
+		query: getRepositoriesQuery
 	})
 	console.log(results.data.viewer.repositories.nodes)
-}
-getResults();
+
+	// const result = '''
+  //     {results.data.viewer.repositories.nodes.map((repo) => (
+  //       <option key={repo.name} value={repo.url}>
+  //         {repo.name}
+  //       </option>
+  //     ))}'''
+  res.send(results.data.viewer.repositories.nodes)
+});
+
+app.get('/issues', async function(req, res) {
+	const issuesVar = {
+		owner_name: "mandar-harkare",
+		repository_name: "nodejs"
+
+	}
+  const results = await client.query({
+		query: getIssuesQuery,
+		// varaibles: issuesVar
+	})
+	console.log(results.data.repository.issues.edges)
+  res.send(results.data.repository.issues.edges)
+});
+
+app.listen(8000, () => console.log(`Example app listening on port 8000!`))
